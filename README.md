@@ -27,3 +27,12 @@ yarn lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+
+
+## style
+
+https://animate.style/
+
+https://nzbin.github.io/three-dots/#

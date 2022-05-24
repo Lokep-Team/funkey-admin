@@ -1,6 +1,12 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import store from "./store";
+import { createPinia } from "pinia";
 
-createApp(App).use(store).use(router).mount("#app");
+import Vue3Transitions from "vue3-transitions";
+
+createApp(App)
+  .use(createPinia())
+  .use(router)
+  .use(Vue3Transitions)
+  .mount("#app");

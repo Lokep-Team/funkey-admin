@@ -1,8 +1,13 @@
-import { createStore } from "vuex";
+import { defineStore } from "pinia";
 
-export default createStore({
-  state: {},
-  mutations: {},
-  actions: {},
-  modules: {},
+export const useStore = defineStore("main", {
+  state: () => ({
+    drawerVisible: false,
+  }),
+
+  actions: {
+    toggleDrawer() {
+      this.drawerVisible = !this.drawerVisible;
+    },
+  },
 });
