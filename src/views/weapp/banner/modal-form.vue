@@ -1,105 +1,88 @@
 <template>
   <a-modal
-    v-model:visible="modalVisible"
+    :visible="visible"
     title="Edit Banner"
     :confirm-loading="confirmLoading"
     @ok="handleOk"
+    @update:visible="updateVisible"
     @cancel="handleCancel"
   >
     <a-form
       :model="formModel"
       name="formModel"
-      ref="formRef"
       :label-col="{ span: 5 }"
       :wrapper-col="{ span: 19 }"
       autocomplete="off"
     >
-      <a-form-item
-        label="Title"
-        name="title"
-        :rules="[{ required: true, message: 'Please input banner title!' }]"
-      >
-        <a-input v-model:value="formModel.title" />
+      <a-form-item label="Image" name="image" :rules="rulesRef.image">
+        <!-- TODO 之后换成七牛云直传 -->
+        <a-input v-model:value="formModel.image" />
       </a-form-item>
 
-      <a-form-item
-        label="Description"
-        name="description"
-        :rules="[
-          { required: true, message: 'Please input banner description!' },
-        ]"
-      >
-        <a-input v-model:value="formModel.description" />
+      <a-form-item label="Date" name="date" :rules="rulesRef.date">
+        <a-range-picker
+          v-model:value="formModel.date"
+          inputReadOnly
+          style="width: 100%"
+        />
       </a-form-item>
 
-      <a-form-item
-        label="LinkType"
-        name="linkType"
-        :rules="[{ required: true, message: 'Please select link type!' }]"
-      >
+      <a-form-item label="LinkType" name="linkType">
         <a-select
           v-model:value="formModel.linkType"
-          placeholder="Select a person"
-          style="width: 200px"
+          placeholder="Select a Link Type"
+          allowClear
           :options="linkTypeOptions"
         ></a-select>
       </a-form-item>
 
       <a-form-item
+        v-if="
+          formModel.linkType === EBannerLinkType.MiniProgram ||
+          formModel.linkType === EBannerLinkType.H5
+        "
         label="Link"
         name="link"
-        :rules="[{ required: true, message: 'Please select link type!' }]"
       >
         <a-input v-model:value="formModel.link" />
       </a-form-item>
 
-      <a-form-item label="Image" name="image">
-        <a-upload
-          v-model:file-list="uploadState.fileList"
-          name="avatar"
-          list-type="picture-card"
-          class="avatar-uploader"
-          :show-upload-list="false"
-          action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-          :before-upload="beforeUpload"
-          @change="handleChange"
-        >
-          <img
-            v-if="uploadState.imageUrl"
-            :src="uploadState.imageUrl"
-            alt="avatar"
-          />
-          <div v-else>
-            <loading-outlined v-if="uploadState.loading"></loading-outlined>
-            <plus-outlined v-else></plus-outlined>
-            <div class="ant-upload-text">Upload</div>
-          </div>
-        </a-upload>
+      <a-form-item
+        v-if="formModel.linkType === EBannerLinkType.MiniProgramOut"
+        label="AppID"
+        name="appid"
+      >
+        <a-input v-model:value="formModel.appid" />
       </a-form-item>
 
-      <a-form-item label="Status" name="status">
-        <a-switch v-model:checked="formSwitch"></a-switch>
+      <a-form-item
+        v-if="formModel.linkType === EBannerLinkType.Text"
+        label="Toast"
+        name="content"
+      >
+        <a-input v-model:value="formModel.content" />
       </a-form-item>
 
-      <a-form-item label="Date" name="date">
-        <a-range-picker v-model:value="formModel.date" />
+      <!-- 是否冻结 -->
+      <a-form-item label="Frozen" name="status">
+        <a-switch v-model:checked="formModel.status"></a-switch>
       </a-form-item>
     </a-form>
   </a-modal>
 </template>
 
 <script lang="ts" setup>
+import { addBanner, updateBanner } from "@/api/banner";
+import dayjs from "dayjs";
 import {
   reactive,
   ref,
   toRefs,
   defineProps,
   defineEmits,
-  watchEffect,
-  onBeforeMount,
+  unref,
+  Ref,
 } from "vue";
-import { FormInstance } from "ant-design-vue";
-import { LoadingOutlined, PlusOutlined } from "@ant-design/icons-vue";
 import { EBannerLinkType, IBanner } from "./index";
 
 const props = defineProps({
@@ -109,29 +92,37 @@ const props = defineProps({
   },
 });
 
-const modalVisible = ref(false);
-
-onBeforeMount(() => {
-  modalVisible.value = visible.value;
-});
-
-watchEffect(() => {
-  emits("update:visible", false);
-});
-
-const emits = defineEmits(["update:visible"]);
+const emits = defineEmits(["update:visible", "refresh"]);
 
 // form
-const formRef = ref<FormInstance>();
 const formModel = reactive<IBanner>({
   id: "",
-  title: "",
-  description: "",
+  appid: "",
   image: "",
   date: [],
-  status: -1,
+  status: false,
   linkType: 0,
   link: "",
+  content: "",
+});
+
+const rulesRef = reactive({
+  image: [
+    {
+      required: true,
+      message: "Please Input Your Banner Picture!",
+    },
+    {
+      pattern: /^(http|https):\/\//,
+      message: "请输入http://或https://开头的地址",
+    },
+  ],
+  date: [
+    {
+      required: true,
+      message: "Please Choose Banner Exhibit Time",
+    },
+  ],
 });
 
 const linkTypeOptions: Array<{ label: string; value: EBannerLinkType }> = [
@@ -157,36 +148,56 @@ const linkTypeOptions: Array<{ label: string; value: EBannerLinkType }> = [
   },
 ];
 
-const formSwitch = ref<boolean>(false);
-
-// uploader
-const uploadState = reactive({
-  fileList: [],
-  imageUrl: "",
-  loading: false,
-});
-const beforeUpload = () => {
-  console.log("beforeUpload");
-};
-const handleChange = () => {
-  console.log("handleChange");
-};
-
 // modal
 const confirmLoading = ref(false);
 const { visible } = toRefs(props);
 
-const handleOk = () => {
-  confirmLoading.value = true;
-  setTimeout(() => {
-    visible.value = false;
-    confirmLoading.value = false;
-  }, 2000);
+const handleOk = async () => {
+  let res = { res: -1 };
+  const {
+    id = "",
+    appid = null,
+    image = "",
+    date = [],
+    status = false,
+    linkType = 0,
+    link = "",
+    content = "",
+  } = unref(formModel);
+  const [startDate, endDate] = date;
 
-  emits("update:visible", !visible.value);
+  const params = {
+    id,
+    appid,
+    imgUrl: image,
+    onlineTimeStart: dayjs(startDate).format("YYYY-MM-DD hh:mm:ss"),
+    onlineTimeEnd: dayjs(endDate).format("YYYY-MM-DD hh:mm:ss"),
+    isFrozen: Number(status),
+    jumpType: linkType,
+    url: link,
+    content,
+  };
+
+  confirmLoading.value = true;
+
+  if (formModel.id) {
+    res = await updateBanner({ ...params });
+  } else {
+    res = await addBanner({ ...params });
+  }
+
+  if (res.res === 0) {
+    emits("update:visible", !visible.value);
+    emits("refresh");
+  }
+  confirmLoading.value = false;
 };
+
+const updateVisible = (e: Ref<boolean>) => {
+  emits("update:visible", e);
+};
+
 const handleCancel = () => {
-  formRef.value!.resetFields();
-  modalVisible.value = false;
+  emits("update:visible", !visible.value);
 };
 </script>

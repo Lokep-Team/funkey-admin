@@ -2,6 +2,10 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 
 export const routes: Array<RouteRecordRaw> = [
   {
+    path: "/",
+    redirect: "/content/article",
+  },
+  {
     path: "/login",
     name: "Login",
     component: () =>
@@ -66,10 +70,10 @@ export const routes: Array<RouteRecordRaw> = [
             import(
               /* webpackChunkName: "user" */ "@/views/weapp/banner/index.vue"
             ),
-          topbar: () =>
-            import(
-              /* webpackChunkName: "user" */ "@/views/weapp/banner/topbar.vue"
-            ),
+          // topbar: () =>
+          //   import(
+          //     /* webpackChunkName: "user" */ "@/views/weapp/banner/topbar.vue"
+          //   ),
         },
       },
       {

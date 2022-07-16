@@ -42,7 +42,7 @@
         border-radius: 4px;
         margin-bottom: 12px;
 
-        transition: box-shadow 0.4s ease;
+        // transition: box-shadow 0.4s ease;
 
         &.is-active {
           &,
@@ -112,7 +112,7 @@
             'is-active': isMenuActive(item.path),
           }"
         >
-          {{ item.meta!.title }}
+          {{ item.meta?.title }}
 
           <!-- <div class="iconfont iconarrow-up-bold"></div> -->
         </div>
@@ -128,7 +128,7 @@
             @click="() => handleSubMenuClick(item.path, el.path)"
           >
             <div class="iconfont" :class="el.meta!.icon"></div>
-            {{ el.meta!.title  }}
+            {{ el.meta?.title }}
           </div>
         </div>
       </div>

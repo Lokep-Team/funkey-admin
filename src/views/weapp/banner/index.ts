@@ -32,11 +32,17 @@ export const BannerConfig = {
  */
 export interface IBanner {
   id?: string;
-  title: string;
-  description: string;
   linkType: EBannerLinkType;
   link?: string;
   image: string;
   date: Array<Date>;
-  status: EBannerStatus;
+  status: boolean;
+  content?: string;
+  appid?: string;
 }
+
+export const listTypeMap = new Map([
+  [0, "List"],
+  [1, "Board"],
+  [2, "Calendar"],
+]);

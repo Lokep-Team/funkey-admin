@@ -43,15 +43,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, defineEmits } from "vue";
+import { listTypeMap } from "./index";
 
-const listTypeMap = new Map([
-  [0, "List"],
-  [1, "Board"],
-  [2, "Calendar"],
-]);
-const currentListType = ref(1);
+const emit = defineEmits(["change"]);
+
+const currentListType = ref(0);
 const handleTabClick = (key: number) => {
   currentListType.value = key;
+  emit("change", currentListType);
 };
 </script>
